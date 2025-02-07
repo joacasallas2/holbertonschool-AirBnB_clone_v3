@@ -55,8 +55,10 @@ class FileStorage:
                 jo = json.load(f)
             for key in jo:
                 self.__objects[key] = classes[jo[key]["__class__"]](**jo[key])
-        except:
+        except FileNotFoundError:
             pass
+        except json.JSONDecodeError as e:
+            print(f"Error loading JSON file: {e}")
 
     def delete(self, obj=None):
         """delete obj from __objects if it’s inside"""
