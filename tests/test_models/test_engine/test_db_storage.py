@@ -4,8 +4,13 @@ Contains the TestDBStorageDocs and TestDBStorage classes
 """
 
 from datetime import datetime
+import json
+import os
+import pep8
+import unittest
 import inspect
 import models
+from models import storage
 from models.engine import db_storage
 from models.amenity import Amenity
 from models.base_model import BaseModel
@@ -14,10 +19,7 @@ from models.place import Place
 from models.review import Review
 from models.state import State
 from models.user import User
-import json
-import os
-import pep8
-import unittest
+
 DBStorage = db_storage.DBStorage
 classes = {"Amenity": Amenity, "City": City, "Place": Place,
            "Review": Review, "State": State, "User": User}
@@ -86,3 +88,30 @@ class TestFileStorage(unittest.TestCase):
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_save(self):
         """Test that save properly saves objects to file.json"""
+
+
+class TestDBStorageGet(unittest.TestCase):
+    """Test cases for the get method in DBStorage."""
+
+    @unittest.skipIf(storage.__class__.__name__ != "DBStorage", "not testing db storage")
+    def test_get_existing_object(self):
+        """Test retrieving an existing object."""
+        new_state = State(name="California")
+        storage.new(new_state)
+        storage.save()
+        retrieved_state = storage.get(State, new_state.id)
+        self.assertIsNotNone(retrieved_state)
+        self.assertEqual(retrieved_state.id, new_state.id)
+
+    @unittest.skipIf(storage.__class__.__name__ != "DBStorage", "not testing db storage")
+    def test_get_nonexistent_object(self):
+        """Test retrieving a non-existent object."""
+        retrieved_state = storage.get(State, "nonexistent_id")
+        self.assertIsNone(retrieved_state)
+
+    @unittest.skipIf(storage.__class__.__name__ != "DBStorage", "not testing db storage")
+    def test_get_invalid_class(self):
+        """Test passing an invalid class to get method."""
+        retrieved_obj = storage.get("InvalidClass", "some_id")
+        self.assertIsNone(retrieved_obj)
+
