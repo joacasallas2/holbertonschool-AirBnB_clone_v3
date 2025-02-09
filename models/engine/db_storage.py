@@ -1,97 +1,60 @@
-#!/usr/bin/python3
-"""
-Contains the class DBStorage
-"""
-
-import models
-from models.amenity import Amenity
-from models.base_model import BaseModel, Base
-from models.city import City
-from models.place import Place
-from models.review import Review
+import unittest
+from models import storage
 from models.state import State
-from models.user import User
-from os import getenv
-import sqlalchemy
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-
-classes = {"Amenity": Amenity, "City": City,
-           "Place": Place, "Review": Review, "State": State, "User": User}
+from models.city import City
 
 
-class DBStorage:
-    """interaacts with the MySQL database"""
-    __engine = None
-    __session = None
+class TestDBStorageGet(unittest.TestCase):
+    """Test cases for the get method in DBStorage."""
 
-    def __init__(self):
-        """Instantiate a DBStorage object"""
-        HBNB_MYSQL_USER = getenv('HBNB_MYSQL_USER')
-        HBNB_MYSQL_PWD = getenv('HBNB_MYSQL_PWD')
-        HBNB_MYSQL_HOST = getenv('HBNB_MYSQL_HOST')
-        HBNB_MYSQL_DB = getenv('HBNB_MYSQL_DB')
-        HBNB_ENV = getenv('HBNB_ENV')
-        self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'.
-                                      format(HBNB_MYSQL_USER,
-                                             HBNB_MYSQL_PWD,
-                                             HBNB_MYSQL_HOST,
-                                             HBNB_MYSQL_DB))
-        if HBNB_ENV == "test":
-            Base.metadata.drop_all(self.__engine)
+    @unittest.skipIf(storage.__class__.__name__ != "DBStorage", "not testing db storage")
+    def test_get_existing_object(self):
+        """Test retrieving an existing object."""
+        new_state = State(name="California")
+        storage.new(new_state)
+        storage.save()
+        retrieved_state = storage.get(State, new_state.id)
+        self.assertIsNotNone(retrieved_state)
+        self.assertEqual(retrieved_state.id, new_state.id)
 
-    def all(self, cls=None):
-        """query on the current database session"""
-        new_dict = {}
-        for clss in classes:
-            if cls is None or cls is classes[clss] or cls is clss:
-                objs = self.__session.query(classes[clss]).all()
-                for obj in objs:
-                    key = obj.__class__.__name__ + '.' + obj.id
-                    new_dict[key] = obj
-        return (new_dict)
+    @unittest.skipIf(storage.__class__.__name__ != "DBStorage", "not testing db storage")
+    def test_get_nonexistent_object(self):
+        """Test retrieving a non-existent object."""
+        retrieved_state = storage.get(State, "nonexistent_id")
+        self.assertIsNone(retrieved_state)
 
-    def new(self, obj):
-        """add the object to the current database session"""
-        self.__session.add(obj)
+    @unittest.skipIf(storage.__class__.__name__ != "DBStorage", "not testing db storage")
+    def test_get_invalid_class(self):
+        """Test passing an invalid class to get method."""
+        retrieved_obj = storage.get("InvalidClass", "some_id")
+        self.assertIsNone(retrieved_obj)
 
-    def save(self):
-        """commit all changes of the current database session"""
-        self.__session.commit()
 
-    def delete(self, obj=None):
-        """delete from the current database session obj if not None"""
-        if obj is not None:
-            self.__session.delete(obj)
+class TestFileStorageCount(unittest.TestCase):
+    """Test cases for the count method in FileStorage."""
 
-    def reload(self):
-        """reloads data from the database"""
-        Base.metadata.create_all(self.__engine)
-        sess_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
-        Session = scoped_session(sess_factory)
-        self.__session = Session
+    @unittest.skipIf(storage.__class__.__name__ != "FileStorage", "not testing file storage")
+    def test_count_all_objects(self):
+        """Test counting all objects in storage."""
+        initial_count = storage.count()
+        new_state = State(name="Texas")
+        storage.new(new_state)
+        storage.save()
+        self.assertEqual(storage.count(), initial_count + 1)
 
-    def close(self):
-        """call remove() method on the private session attribute"""
-        self.__session.remove()
+    @unittest.skipIf(storage.__class__.__name__ != "FileStorage", "not testing file storage")
+    def test_count_specific_class(self):
+        """Test counting objects of a specific class."""
+        initial_count = storage.count(State)
+        new_state = State(name="Florida")
+        storage.new(new_state)
+        storage.save()
+        self.assertEqual(storage.count(State), initial_count + 1)
 
-    def get(self, cls, id):
-        """Method to retrieve one object"""
-        for clss in classes:
-            if cls is classes[clss] or cls is clss:
-                objs = self.__session.query(classes[clss]).all()
-                for obj in objs:
-                    if id == obj.id:
-                        return (obj)
-        return None
+    @unittest.skipIf(storage.__class__.__name__ != "FileStorage", "not testing file storage")
+    def test_count_nonexistent_class(self):
+        """Test counting a class that has no instances."""
+        self.assertEqual(storage.count("InvalidClass"), 0)
 
-    def count(self, cls=None):
-        """count the number of objects in storage"""
-        new_dict = {}
-        count = 0
-        for clss in classes:
-            if cls is None or cls is classes[clss] or cls is clss:
-                objs = self.__session.query(classes[clss]).all()
-                for obj in objs:
-                    count += 1
-        return (count)
+if __name__ == "__main__":
+    unittest.main()
