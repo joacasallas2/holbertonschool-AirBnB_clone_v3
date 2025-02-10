@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # Author: Joana Casallas
 from flask import jsonify
 from api.v1.views import app_views
