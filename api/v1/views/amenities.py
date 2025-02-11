@@ -61,7 +61,7 @@ def update_amenity(amenity_id):
     """Update amenity"""
     amenity = storage.get(Amenity, amenity_id)
     if amenity is None:
-        abort(404, description="City not found")
+        abort(404, description="User not found")
     if not request.is_json:
         abort(400, description="Not a JSON")
     data = request.get_json()

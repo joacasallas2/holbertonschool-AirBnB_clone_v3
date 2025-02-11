@@ -9,3 +9,4 @@ from api.v1.views.index import *  # noqa: F401
 from api.v1.views.states import *  # noqa: F401
 from api.v1.views.cities import *  # noqa: F401
 from api.v1.views.amenities import *  # noqa: F401
+from api.v1.views.users import *  # noqa: F401
