@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # Author: Joana Casallas
-"""States view"""
+"""Cities view"""
 from flask import jsonify, abort, request
 from api.v1.views import app_views
 from models import storage
