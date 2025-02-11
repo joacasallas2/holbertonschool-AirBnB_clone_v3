@@ -61,7 +61,7 @@ def create_user():
 @app_views.route("/users/<string:user_id>", methods=["PUT"],
                  strict_slashes=False)
 def update_user(user_id):
-    """Update amenity"""
+    """Update user"""
     user = storage.get(User, user_id)
     if user is None:
         abort(404, description="User not found")
