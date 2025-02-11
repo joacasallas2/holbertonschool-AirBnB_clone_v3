@@ -49,7 +49,7 @@ def create_user():
     if 'name' not in data:
         abort(400, description="Missing name")
     if 'email' not in data:
-        abort(400, description="Missing mail")
+        abort(400, description="Missing email")
     if 'password' not in data:
         abort(400, description="Missing password")
     new_user = User(**data)
