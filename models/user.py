@@ -27,7 +27,6 @@ class User(BaseModel, Base):
         """initializes user"""
         super().__init__(*args, **kwargs)
 
-
     @property
     def password(self):
         """Password getter - prevent direct access"""
