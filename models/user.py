@@ -31,9 +31,10 @@ class User(BaseModel, Base):
     @property
     def password(self):
         """Password getter - prevent direct access"""
-        return self._password
+        return None
 
     @password.setter
     def password(self, value):
         """Hashes password before setting"""
-        self._password = hashlib.md5(value.encode()).hexdigest()
+        if value:
+            self._password = hashlib.md5(value.encode()).hexdigest()
