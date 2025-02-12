@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # Author: Joana Casallas
-"""Amenities sview"""
+"""Amenities view"""
 from flask import jsonify, abort
 from api.v1.views import app_views
 from models import storage
