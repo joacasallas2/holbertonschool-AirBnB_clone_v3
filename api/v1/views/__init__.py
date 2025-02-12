@@ -12,3 +12,4 @@ from api.v1.views.amenities import *  # noqa: F401
 from api.v1.views.users import *  # noqa: F401
 from api.v1.views.places import *  # noqa: F401
 from api.v1.views.places_reviews import *  # noqa: F401
+from api.v1.views.places_amenities import *  # noqa: F401
