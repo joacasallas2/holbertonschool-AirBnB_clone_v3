@@ -14,7 +14,27 @@ from models.amenity import Amenity
 @app_views.route("cities/<string:city_id>/places", methods=["GET"],
                  strict_slashes=False)
 def get_places(city_id):
-    """Retrieve all places by its city_id"""
+    """
+    Retrieve all places by its city ID.
+    ---
+    tags:
+      - Places
+    parameters:
+      - name: city_id
+        in: path
+        required: true
+        type: string
+        description: The ID of the city
+    responses:
+      200:
+        description: A list of places in the specified city
+        schema:
+          type: array
+          items:
+            $ref: "#/definitions/Place"
+      404:
+        description: City not found
+    """
     city = storage.get(City, city_id)
     if city is None:
         abort(404)
@@ -25,7 +45,25 @@ def get_places(city_id):
 @app_views.route("/places/<string:place_id>", methods=["GET"],
                  strict_slashes=False)
 def get_place(place_id):
-    """Retrieve an place by its ID"""
+    """
+    Retrieve a place by its ID.
+    ---
+    tags:
+      - Places
+    parameters:
+      - name: place_id
+        in: path
+        required: true
+        type: string
+        description: The ID of the place
+    responses:
+      200:
+        description: A place object
+        schema:
+          $ref: "#/definitions/Place"
+      404:
+        description: Place not found
+    """
     place = storage.get(Place, place_id)
     if place is None:
         abort(404)
@@ -35,7 +73,23 @@ def get_place(place_id):
 @app_views.route("/places/<string:place_id>", methods=["DELETE"],
                  strict_slashes=False)
 def delete_place(place_id):
-    """Delete a place by its ID"""
+    """
+    Delete a place by its ID.
+    ---
+    tags:
+      - Places
+    parameters:
+      - name: place_id
+        in: path
+        required: true
+        type: string
+        description: The ID of the place
+    responses:
+      200:
+        description: Place successfully deleted
+      404:
+        description: Place not found
+    """
     place = storage.get(Place, place_id)
     if place is None:
         abort(404)
@@ -47,7 +101,39 @@ def delete_place(place_id):
 @app_views.route("cities/<string:city_id>/places", methods=["POST"],
                  strict_slashes=False)
 def create_place(city_id):
-    """Create place"""
+    """
+    Create a new place in a city.
+    ---
+    tags:
+      - Places
+    parameters:
+      - name: city_id
+        in: path
+        required: true
+        type: string
+        description: The ID of the city
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            user_id:
+              type: string
+              example: "123"
+            name:
+              type: string
+              example: "Cozy Apartment"
+    responses:
+      201:
+        description: Place successfully created
+        schema:
+          $ref: "#/definitions/Place"
+      400:
+        description: Missing required fields or invalid JSON
+      404:
+        description: City or User not found
+    """
     city = storage.get(City, city_id)
     if city is None:
         abort(404)
@@ -72,13 +158,62 @@ def create_place(city_id):
 
 @app_views.route("/places_search", methods=["POST"],
                  strict_slashes=False)
-def all_places_id():
-    """Return list of places according the filter required"""
+def places_search():
+    """
+    Search for places based on filters in JSON body.
+    ---
+    tags:
+      - Places
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            states:
+              type: array
+              items:
+                type: string
+              example: ["CA", "NY"]
+            cities:
+              type: array
+              items:
+                type: string
+              example: ["Los Angeles", "New York"]
+            amenities:
+              type: array
+              items:
+                type: string
+              example: ["WiFi", "Parking"]
+    responses:
+      200:
+        description: Successfully retrieved places
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Search executed with provided filters"
+            filters:
+              type: object
+              example:
+                states: ["CA", "NY"]
+                cities: ["Los Angeles", "New York"]
+                amenities: ["WiFi", "Parking"]
+      400:
+        description: Invalid request body
+    """
     if not request.is_json:
         abort(400, description="Not a JSON")
     data = request.get_json()
-    if data is None:
-        return [place.to_dict() for place in storage.all(Place).values()]
+    if data is None or not any(key in data for key in ['states',
+                                                       'cities',
+                                                       'amenities']):
+        return jsonify([
+            place.to_dict() for place in storage.all(Place).values()])
     list_ids = []
     list_cities = []
     list_places = []
@@ -112,7 +247,36 @@ def all_places_id():
 @app_views.route("/places/<string:place_id>", methods=["PUT"],
                  strict_slashes=False)
 def update_place(place_id):
-    """Update place"""
+    """
+    Update an existing place.
+    ---
+    tags:
+      - Places
+    parameters:
+      - name: place_id
+        in: path
+        required: true
+        type: string
+        description: The ID of the place
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "Luxury Villa"
+    responses:
+      200:
+        description: Place successfully updated
+        schema:
+          $ref: "#/definitions/Place"
+      400:
+        description: Invalid JSON request
+      404:
+        description: Place not found
+    """
     place = storage.get(Place, place_id)
     if place is None:
         abort(404, description="Place not found")
